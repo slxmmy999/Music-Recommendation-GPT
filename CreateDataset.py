@@ -47,56 +47,35 @@ def insert_user_data(username, data, conn):
 
 api_key = "87935e55f2e097dfdffbaa7cd1ab0851"
 usernames = [
-                "ampmminimarket",
-                "zachlavine",
-                "catherineisa",
-                "Jemma117",
-                "zigojacko",
-                "romidaponte",
-                "TB8S",
-                "godsmith2",
-                "illcallyouback",
-                "Fidelmo",
-                "helluvaboss",
-                "Blazer223",
-                "bummyjen",
-                "posthxclove",
-                "WayneSkywaler",
-                "StrngerNTheAlps",
-                "vinicanal1",
-                "Emo_dude_kel",
-                "SixEvening464",
-                "ArbiterFacts",
-                "Wendiggoat",
-                "t_better",
-                "fvalt05",
-                "TheFreeWheelinQ",
-                "trentssb",
-                "ladywhiskers94",
-                "Arpit7",
-                "jojokimbles",
-                "anastasiawomack",
-                "vsick1",
-                "kuriouskiwii",
-                "palkopupa",
-                "zigojacko",
-                "MorganPog",
-                "Lkate9",
-                "Tecktoyouth",
-                "James-Ingram",
-                "hlhyde",
-                "DeMoBeats1234",
-                "CitoyenHarrison",
-                "fepeinado",
-                "In_Solitude",
-                "brownbiatch",
-                "yuzherr",
-                "BesiBesiBesi"
+                "With_Yearning",
+                "amburp",
+                "dancinde",
+                "Lord_Erie",
+                "diog1st",
+                "Ihacklover",
+                "technomaster45",
+                "gracrys",
+                "xenofile",
+                "starsetvinyl",
+                "snakehound96",
+                "NENathaniel",
+                "selainx",
+                "joshuahgu",
+                "ammace",
+                "Liquorandjazz",
+                "bonelifer",
+                "Black_Moon666",
+                "Igertajti",
+                "la45678",
+                "naltawaller",
+                "xowaltz",
+                "desarenezitic_",
+                "magicalmorie"
             ]
 
 usernames = list(set(usernames))
 
-def process_user(user):
+def process_user(user, threads):
     limit = 200  # maximum limit
 
     conn = sqlite3.connect(db_file)
@@ -129,13 +108,14 @@ def process_user(user):
         else:
             print("Error: Unable to retrieve user listening history.")
             break
-        sleep(1)
+        if threading.active_count() > 8:
+            sleep(1)
     insert_user_data(user, user_data, conn)
     print(f"DATA RETRIEVED AND STORED FOR {user}")
 
 threads = []
 for user in usernames:
-    thread = threading.Thread(target=process_user, args=(user,))
+    thread = threading.Thread(target=process_user, args=(user, threads,))
     threads.append(thread)
     thread.start()
 
