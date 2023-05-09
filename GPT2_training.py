@@ -1,65 +1,37 @@
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, TextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments, GPT2Config, ProgressCallback
-import sqlite3
+from torch.utils.data import IterableDataset, DataLoader, ConcatDataset
+import os
 
-conn = sqlite3.connect('lastfm_data.db')
-cursor = conn.cursor()
+class TextIterableDataset(IterableDataset):
+    def __init__(self, dataset):
+        self.dataset = dataset
 
-# Get a list of all the tables in the database
-cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-table_names = cursor.fetchall()
+    def __iter__(self):
+        for i in range(len(self.dataset)):
+            yield self.dataset[i]
 
-# Process the data into a format suitable for training the language model
-processed_data = []
-for table_name in table_names:
-    username = ""
-    if len(table_name[0].split("_")) > 3:
-        for num in range(2, len(table_name[0].split("_"))):
-            username += table_name[0].split("_")[num]
-            if num + 1 != len(table_name[0].split("_")):
-                username += "_"
-    # Get the data for the current table
-    if table_name[0][-1] == "_":
-        username += "_"
-    cursor.execute(f"SELECT artist, title FROM {table_name[0]}")
-    data = cursor.fetchall()
-    
-    # Concatenate the artist and title for each song and add to the processed data
-    for row in data:
-        song_text = f"{row[0]} - {row[1]} (User: {username})"
-        processed_data.append(song_text)
-
-conn.close()
-
-# conn = sqlite3.connect('lastfm_similars.db')
-# cursor = conn.cursor()
-
-# # Get a list of all the songs in the database
-# cursor.execute("SELECT track_id FROM songs")
-# song_ids = cursor.fetchall()
-
-# # Process the data into a format suitable for training the language model
-# for song_id in song_ids:
-#     # Get the similar songs for the current song
-#     cursor.execute(f"SELECT target FROM similarity WHERE source='{song_id[0]}'")
-#     similar_songs = cursor.fetchall()
-    
-#     # Concatenate the artist and title for each similar song and add to the processed data
-#     for similar_song in similar_songs:
-#         cursor.execute(f"SELECT artist_name, title FROM songs WHERE track_id='{similar_song[0]}'")
-#         data = cursor.fetchone()
-#         song_text = f"{data[0]} - {data[1]}"
-#         processed_data.append(song_text)
-
-# conn.close()
+def data_loader(batch_size=4):
+    return DataLoader(TextIterableDataset(train_dataset), batch_size=batch_size)
 
 # Load the pre-trained GPT-2 Simple tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
-# Tokenize the processed data
-tokenized_data = [tokenizer.encode(text) for text in processed_data]
-
 # Create a TextDataset from the tokenized data
-train_dataset = TextDataset(tokenized_data, tokenizer=tokenizer)
+files_dir = "./dataset"
+files = os.listdir(files_dir)
+
+datasets = []
+for file in files:
+    if file.endswith(".txt") and file.startswith("tokenized"):
+        file_path = os.path.join(files_dir, file)
+        dataset = TextDataset(
+            file_path=file_path,
+            tokenizer=tokenizer,
+            block_size=128
+        )
+        datasets.append(dataset)
+
+train_dataset = ConcatDataset(datasets)
 
 # Load the pre-trained GPT-2 Simple model configuration
 model_config = GPT2Config.from_pretrained('gpt2')
@@ -80,8 +52,7 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=8,
     save_steps=5000,  # Number of steps between saving checkpoints
     save_total_limit=2,  # Limit the total amount of checkpoints saved
-    prediction_loss_only=True, 
-    num_workers=12,  
+    prediction_loss_only=True 
 )
 trainer = Trainer(
     model=model,
@@ -92,6 +63,7 @@ trainer = Trainer(
 )
 
 # Fine-tune the model on your dataset
+print("beginning training")
 trainer.train()
 
 # Save the fine-tuned model weights and tokenizer
