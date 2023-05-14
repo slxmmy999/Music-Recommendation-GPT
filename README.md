@@ -1,4 +1,4 @@
-# music-gpt
+# Music Recommendation GPT
 
 An LLM based music recommendation system. This project is currently in its very early stages, however the goal of this project is to create an extremely flexible music recommendation system using a chat focused LLM on the frontend to interact with a robust recommendation system on the backend.
 
