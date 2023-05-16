@@ -4,4 +4,4 @@ The goal for this project is to create an LLM based music recommendation system.
 
 ## Contributions
 
-ANY contributions are welcome, whether it's knowledge, hardware, or code. Please feel free to send me a message on any platform with whatever proposal you may have and I will get back to you as soon as possible.
+I am open to all collaborators and ANY contributions are welcome, whether it's knowledge, hardware, or code. Please feel free to send me a message on any platform with whatever proposal you may have and I will get back to you as soon as possible.
